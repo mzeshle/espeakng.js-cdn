@@ -76,3 +76,24 @@ easier for jsdelivr in the future.
 (I was unable to minify `js/espeakng.js` with `UglifyJS 2`
 since it complained about the use of the `of` operator,
 it looks like an issue with ECMAScript-something support.)
+
+## How to use the synthesize_ipa function
+
+The `synthesize_ipa` function is similar to the `synthesize` function but returns the IPA transcription of the input text. Here is an example of how to use it:
+
+```javascript
+// Create an instance of eSpeakNG
+var tts = new eSpeakNG('js/espeakng.worker.js', function() {
+  // Set the rate, pitch, and voice
+  tts.set_rate(175);
+  tts.set_pitch(50);
+  tts.set_voice('en');
+
+  // Synthesize IPA transcription
+  tts.synthesize_ipa('Hello, world!', function(ipa) {
+    console.log('IPA Transcription:', ipa);
+  });
+});
+```
+
+In this example, the `synthesize_ipa` function is called with the input text 'Hello, world!' and a callback function that logs the IPA transcription to the console.

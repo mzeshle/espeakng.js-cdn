@@ -208,6 +208,69 @@ function speak() {
   console.log('Leaving speak()');
 } // end of speak()
 
+function transcribeIPA() {
+  console.log('Inside transcribeIPA()');
+
+  console.log('  Stopping...');
+  stop();
+  console.log('  Stopping... done');
+
+  console.log('  Setting rate...');
+  tts.set_rate(Number(document.getElementById('rate').value));
+  console.log('  Setting rate... done');
+  console.log('  Setting pitch...');
+  tts.set_pitch(Number(document.getElementById('pitch').value));
+  console.log('  Setting pitch... done');
+  console.log('  Setting voice...');
+  tts.set_voice(document.getElementById('voice').value);
+  console.log('  Setting voice... done');
+
+  var now = Date.now();
+  chunkID = 0;
+
+  console.log('  Creating pusher...');
+  pusher = new PushAudioNode(
+    ctx,
+    function() {
+      //console.log('PushAudioNode started!', ctx.currentTime, pusher.startTime);
+    },
+    function() {
+      //console.log('PushAudioNode ended!', ctx.currentTime - pusher.startTime);
+    },
+    pusher_buffer_size
+  );
+  pusher.connect(ctx.destination);
+  console.log('  Creating pusher... done');
+
+  // actual synthesis
+  console.log('  Calling synthesize_ipa...');
+  tts.synthesize_ipa(
+    document.getElementById('texttospeak').value,
+    function cb(samples, events) {
+      //console.log('  Inside synt cb');
+      if (!samples) {
+        if (pusher) {
+          pusher.close();
+        }
+        return;
+      }
+      if (pusher) {
+        //console.log('  Pushing chunk ' + chunkID, Date.now());
+        pusher.push(new Float32Array(samples));
+        ++chunkID;
+      }
+      if (now) {
+        //console.log('  Latency:', Date.now() - now);
+        now = 0;
+      }
+      //console.log('  Leaving synt cb');
+    } // end of function cb
+  ); // end of tts.synthesize_ipa()
+  console.log('  Calling synthesize_ipa... done');
+
+  console.log('Leaving transcribeIPA()');
+} // end of transcribeIPA()
+
 function resetPitch() {
   document.getElementById('pitch').value = 50;
 }
@@ -255,4 +318,13 @@ function initializeDemo() {
     } // end of function cb1
   );
   console.log('Creating eSpeakNG instance... done');
+
+  // Add IPA transcription button
+  var form = document.querySelector('form');
+  var bottomDiv = document.querySelector('.bottom');
+  var ipaButton = document.createElement('button');
+  ipaButton.type = 'button';
+  ipaButton.onmousedown = transcribeIPA;
+  ipaButton.textContent = 'Transcribe IPA';
+  bottomDiv.appendChild(ipaButton);
 }
